@@ -1,0 +1,482 @@
+:root {
+  color-scheme: light;
+  --paper: #f4efe6;
+  --ink: #1d1a16;
+  --muted: #6e655c;
+  --line: #ddd4c6;
+  --card: #fffdf9;
+  --pick: #1c6b45;
+  --pick-bg: #e6f3eb;
+  --hot: #9a3412;
+  --mid: #9a6700;
+  --also: #1d4e89;
+  --also-bg: #e7f0fa;
+  --kept: #9a3412;
+  --kept-bg: #fde8df;
+  --link: #7aa2d4;
+  --link-pick: #1c6b45;
+  --shadow: 0 12px 30px rgba(60, 42, 20, 0.06);
+  --ui-dct-link: var(--link);
+  --ui-dct-link-pick: var(--link-pick);
+  --ui-al-also-bg: var(--also-bg);
+  --ui-al-kept-bg: var(--kept-bg);
+  --ui-agt-link: #82bcff;
+  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #141311;
+  --ink: #f4efe6;
+  --muted: #b3aa9e;
+  --line: #3a342c;
+  --card: #211e1a;
+  --pick: #8fd0aa;
+  --pick-bg: #1c3328;
+  --hot: #f0b429;
+  --mid: #e6c27a;
+  --also: #9ec1ee;
+  --also-bg: #1c2a3d;
+  --kept: #f0b429;
+  --kept-bg: #3a2a1c;
+  --link: #82bcff;
+  --link-pick: #8fd0aa;
+  --shadow: none;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(28, 107, 69, 0.08), transparent 32rem),
+    var(--paper);
+}
+
+button, input, textarea { font: inherit; color: inherit; }
+
+button { cursor: pointer; }
+
+.studio {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 72px;
+  display: grid;
+  gap: 18px;
+}
+
+.studio-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--pick);
+}
+
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+
+h1 { margin: 0; font-size: 2.4rem; line-height: 1.05; }
+
+.lede, .studio-ref { max-width: 68ch; }
+
+.lede { font-size: 1.08rem; }
+
+.studio-ref, .ticket-meta, .ticket-score, .ui-dct-hint, .ui-dct-live {
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.88rem;
+}
+
+.theme, .ticket-desk button, .ui-al button, .ui-agt-dialog button, .ui-aho-give {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.theme:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible {
+  outline: 2px solid var(--pick);
+  outline-offset: 2px;
+}
+
+.studio-error, [role="alert"] { color: var(--hot); }
+
+.ui-dct, .ui-agt, .ui-al, .ui-aho, .ticket-desk {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px 18px;
+}
+
+.ui-dct { container-type: inline-size; }
+
+.ui-dct-bar, .ui-agt-bar, .ui-al-bar, .ui-aho-bar, .ticket-desk > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.ui-dct-bar h2, .ui-agt-bar h2, .ui-al-bar h2, .ui-aho-bar h2, .ticket-desk h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.ui-dct-bar p, .ui-agt-bar p, .ui-al-bar p, .ui-aho-bar p, .ticket-desk header p {
+  margin: 0;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.88rem;
+}
+
+.ui-dct-risk {
+  margin-left: 8px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+}
+
+.ui-dct-risk-high { background: var(--kept-bg); color: var(--hot); }
+.ui-dct-risk-medium { background: #f8efd4; color: var(--mid); }
+
+.ui-dct-flow { display: grid; gap: 14px; }
+
+.ui-dct-question h3 { margin: 0 0 8px; font-size: 1.25rem; }
+.ui-dct-question p { margin: 0; color: var(--muted); }
+
+.ui-dct-branches {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 18px;
+  border-left: 2px solid var(--ui-dct-link);
+  display: grid;
+  gap: 10px;
+}
+
+.ui-dct-branches > li {
+  display: grid;
+  grid-template-columns: minmax(220px, 340px) 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.ui-dct-branches > li[data-pick="true"] { --ui-dct-link: var(--ui-dct-link-pick); }
+
+.ui-dct-branch, .ui-aho-card, .ui-agt-select, .ui-aho-agent button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ui-dct-branches > li[data-pick="true"] .ui-dct-branch {
+  background: var(--pick-bg);
+  border-color: var(--pick);
+}
+
+.ui-dct-branch em, .ui-dct-effects em, .ui-aho-agent em {
+  font-style: normal;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  color: var(--pick);
+}
+
+.ui-dct-key {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--paper);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+}
+
+.ui-dct-effects {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+}
+
+.ui-dct-effects li::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 1px;
+  background: var(--ui-dct-link);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.ui-dct-flag button {
+  border: none;
+  background: transparent;
+  text-decoration: underline dotted;
+  padding: 0;
+  color: var(--hot);
+}
+
+.ui-dct-flag [role="tooltip"] {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.ui-dct-other textarea, .ticket-desk textarea, .ticket-desk input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  padding: 8px 10px;
+}
+
+.ui-dct-other textarea:focus { outline: none; border-color: var(--ink); }
+
+.ui-dct-live { min-height: 1.2em; }
+
+.ui-agt-canvas { display: grid; gap: 12px; }
+
+.ui-agt-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--paper);
+}
+
+.ui-agt-card-top, .ui-agt-meta, .ticket-list header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ui-agt-select {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: auto;
+}
+
+.ui-agt-select span, .ui-agt-task, .ui-agt-meta { color: var(--muted); font-family: "Segoe UI", sans-serif; }
+
+.ui-agt-task { margin: 6px 0; }
+
+.ui-agt-status, .ticket-status {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.ui-agt-status-waiting, .ui-agt-status-failed { color: var(--hot); }
+.ui-agt-status-running { color: var(--also); }
+.ui-agt-status-done, .ticket-status.is-eligible { color: var(--pick); }
+.ticket-status.is-queued { color: var(--mid); }
+.ticket-status.is-cancelled { color: var(--muted); }
+
+.ui-agt-children {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px solid var(--ui-agt-link);
+}
+
+.ui-agt-stack { margin-left: 16px; border-left: 2px solid var(--ui-agt-link); padding-left: 10px; }
+
+.ui-agt-fold {
+  border: none;
+  background: transparent;
+  width: 1.5rem;
+}
+
+.ui-agt-ask { border: none; background: transparent; color: var(--hot); text-decoration: underline; }
+
+.ui-agt-dialog {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.ui-agt-dialog div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.ui-aho-relay {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ui-aho-agent, .ui-aho-card {
+  background: var(--paper);
+}
+
+.ui-aho-agent.is-target { box-shadow: inset 0 0 0 2px var(--also); }
+
+.ui-aho-agent ul, .ui-al ol, .ticket-list, .ui-aho-cards {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ui-aho-agent button strong { display: block; }
+.ui-aho-count { color: var(--muted); font-family: "Segoe UI", sans-serif; font-size: 0.78rem; }
+.ui-aho-count::before { content: "· "; }
+.ui-aho-kind { display: block; color: var(--muted); font-style: normal; font-size: 0.75rem; }
+.ui-aho-agent em.is-done { color: var(--pick); }
+.ui-aho-agent em.is-working { color: var(--also); }
+.ui-aho-agent em.is-todo { color: var(--mid); }
+.ui-aho-agent em.is-warning { color: var(--hot); }
+
+.is-lost s { color: var(--muted); }
+
+.ui-aho-give { margin-top: 8px; }
+
+.ui-al ol li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ui-al-target, .ui-al-detail { display: block; color: var(--muted); font-family: "Segoe UI", sans-serif; }
+
+.ui-al-change s { color: var(--muted); }
+
+.ui-al li[data-mark="also"] { background: var(--ui-al-also-bg); }
+.ui-al li[data-mark="kept"] { background: var(--ui-al-kept-bg); }
+.ui-al li.is-undone { opacity: 0.55; text-decoration: line-through; }
+.ui-al-also { color: var(--also); font-style: normal; }
+.ui-al-kept { color: var(--kept); font-family: "Segoe UI", sans-serif; font-size: 0.8rem; }
+.ui-al-lock { color: var(--muted); margin-left: 8px; font-family: "Segoe UI", sans-serif; font-size: 0.8rem; }
+.ui-al-side { text-align: right; font-family: "Segoe UI", sans-serif; font-size: 0.82rem; color: var(--muted); }
+
+.ticket-desk form, .ticket-list li {
+  display: grid;
+  gap: 8px;
+}
+
+.ticket-desk label { display: grid; gap: 4px; font-family: "Segoe UI", sans-serif; }
+
+.ticket-desk form button, .ticket-list button {
+  justify-self: start;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+}
+
+.ticket-list li {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.ticket-empty { color: var(--muted); }
+
+.ticket-instruction {
+  white-space: pre-wrap;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+}
+
+.experiment form { display: grid; gap: 12px; }
+
+.experiment label {
+  display: grid;
+  gap: 6px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.experiment label small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.experiment textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  padding: 8px 10px;
+}
+
+.experiment-branch { margin-top: 0; font-family: "Segoe UI", sans-serif; }
+
+.experiment-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.experiment-actions p { margin: 0; color: var(--muted); font-family: "Segoe UI", sans-serif; font-size: 0.88rem; }
+
+.experiment-actions button, .experiment form button {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.experiment-saved {
+  margin: 14px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.experiment-saved div {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.experiment-saved dt { font-family: "Segoe UI", sans-serif; color: var(--muted); }
+.experiment-saved dd { margin: 0; white-space: pre-wrap; }
+
+@container (max-width: 640px) {
+  .ui-dct-branches > li { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .ui-aho-relay { grid-template-columns: 1fr; }
+  .studio-top { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio * { scroll-behavior: auto !important; transition: none !important; }
+}

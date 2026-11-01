@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2026 Topabaem05
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+This directory vendors the ticket-creation kernel from
+https://github.com/Topabaem05/Falsify (MIT, same copyright):
+
+- packages/domain/src/errors.ts
+- packages/domain/src/result.ts
+- packages/domain/src/ranking.ts
+- packages/domain/src/ticket-machine.ts
+
+`create.ts` is the monitor's adapter. It follows the entry path in
+Falsify `packages/application/src/commands/create-tickets.ts` (`buildTickets`):
+schema-shaped validation, then DRAFT → QUEUED → ELIGIBLE, with the rank score
+computed only by `ranking.ts`. It does not include Falsify's IndexedDB
+workspace, WebMCP envelope, approval policy, or idempotency store. Those depend
+on a research-contract project graph this monitor does not run.
+
+`types.ts` is the slice of `packages/contracts/src/ticket.ts` the kernel reads.
+The Zod schemas stayed in Falsify; this process checks the same bounds in
+`create.ts`.
