@@ -13,3 +13,7 @@ benchmark-results/*
 !benchmark-results/fs-bench-pro/
 benchmark-results/fs-bench-pro/*
 !benchmark-results/fs-bench-pro/optimization-history.md
+
+monitor/node_modules/
+monitor/dist/
+monitor/.data/
