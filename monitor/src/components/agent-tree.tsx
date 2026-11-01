@@ -84,10 +84,16 @@ export function AgentTree({
   return (
     <section className={["ui-agt", className].filter(Boolean).join(" ")} data-testid="agent-tree">
       <header className="ui-agt-bar">
-        <h2>{title}</h2>
+        <h2>
+          <span className="ui-spark" aria-hidden="true" />
+          {title}
+        </h2>
         <p aria-live="polite">
-          {agents.length} agents · {running} running · {waiting} need you · {failed} failed ·{" "}
-          {formatCost(branchCost(root))}
+          <b>{agents.length}</b> agents
+          <span className="ui-agt-stat-run">{running} running</span>
+          <span className="ui-agt-stat-wait">{waiting} need you</span>
+          <span className="ui-agt-stat-fail">{failed} failed</span>
+          <b>{formatCost(branchCost(root))}</b>
         </p>
       </header>
       <div className="ui-agt-canvas" role="tree" aria-label={title}>
@@ -148,10 +154,35 @@ function TreeNode({
   const showCost = children.length > 0 ? branchCost(agent) : agent.cost;
   const dialogOpen = openId === agent.id && (agent.status === "waiting" || agent.status === "failed");
 
+  const nested = depth > 0;
   return (
-    <div className="ui-agt-node" role="group" style={{ marginLeft: depth === 0 ? 0 : undefined }}>
-      <div className="ui-agt-card" role="treeitem" aria-expanded={children.length > 0 ? !isFolded : undefined} aria-label={`${agent.name}, ${STATUS_LABEL[agent.status]}`}>
-        <div className="ui-agt-card-top">
+    <div className={nested ? "ui-agt-nest" : "ui-agt-branch"} role="group">
+      <article
+        className={`ui-agt-card ui-agt-card-${agent.status}`}
+        role="treeitem"
+        aria-expanded={children.length > 0 ? !isFolded : undefined}
+        aria-label={`${agent.name}, ${STATUS_LABEL[agent.status]}`}
+      >
+        <header>
+          <span className="ui-agt-mark" aria-hidden="true">
+            {agent.name.slice(0, 1)}
+          </span>
+          <button type="button" className="ui-agt-select" onClick={() => onSelect?.(agent)} disabled={!onSelect}>
+            <strong>{agent.name}</strong>
+            {agent.model ? <small>{agent.model}</small> : null}
+          </button>
+          {(agent.status === "waiting" || agent.status === "failed") && (agent.ask || agent.error) ? (
+            <button
+              type="button"
+              className={`ui-agt-status ui-agt-status-${agent.status}`}
+              aria-expanded={dialogOpen}
+              onClick={() => onOpen(dialogOpen ? null : agent.id)}
+            >
+              {STATUS_LABEL[agent.status]}
+            </button>
+          ) : (
+            <span className={`ui-agt-status ui-agt-status-${agent.status}`}>{STATUS_LABEL[agent.status]}</span>
+          )}
           {children.length > 0 ? (
             <button
               type="button"
@@ -161,35 +192,14 @@ function TreeNode({
             >
               {isFolded ? "▸" : "▾"}
             </button>
-          ) : (
-            <span className="ui-agt-fold" aria-hidden="true" />
-          )}
-          <button
-            type="button"
-            className="ui-agt-select"
-            onClick={() => onSelect?.(agent)}
-            disabled={!onSelect}
-          >
-            <strong>{agent.name}</strong>
-            {agent.model ? <span>{agent.model}</span> : null}
-          </button>
-          <span className={`ui-agt-status ui-agt-status-${agent.status}`}>{STATUS_LABEL[agent.status]}</span>
-        </div>
-        <p className="ui-agt-task">{agent.task}</p>
-        <p className="ui-agt-meta">
-          {showCost !== undefined ? <span>{formatCost(showCost)}</span> : null}
-          {elapsed !== undefined ? <span>{formatSpan(elapsed)}</span> : null}
-          {(agent.status === "waiting" || agent.status === "failed") && (agent.ask || agent.error) ? (
-            <button
-              type="button"
-              className="ui-agt-ask"
-              aria-expanded={dialogOpen}
-              onClick={() => onOpen(dialogOpen ? null : agent.id)}
-            >
-              {agent.status === "waiting" ? "needs you" : "failed"}
-            </button>
           ) : null}
-        </p>
+        </header>
+        <p className="ui-agt-task">{agent.task}</p>
+        <footer>
+          {showCost !== undefined ? <span>{formatCost(showCost)}</span> : <span />}
+          {elapsed !== undefined ? <span>{formatSpan(elapsed)}</span> : <span />}
+          {children.length > 0 ? <span className="ui-agt-count">{children.length}</span> : null}
+        </footer>
         {dialogOpen ? (
           <div role="dialog" aria-label={agent.name} className="ui-agt-dialog">
             <p>{agent.ask ?? agent.error}</p>
@@ -214,9 +224,9 @@ function TreeNode({
             </div>
           </div>
         ) : null}
-      </div>
+      </article>
       {children.length > 0 && !isFolded ? (
-        <div className={depth === 0 ? "ui-agt-children" : "ui-agt-stack"}>
+        <div className={nested ? "ui-agt-stack" : "ui-agt-children"}>
           {children.map((child) => (
             <TreeNode
               key={child.id}

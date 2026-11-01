@@ -50,136 +50,141 @@ export function AgentHandoff({
     setPickedId(null);
   }
 
+  const waiting = tasks.filter((task) => !task.agent);
+  const pairs = agents.slice(0, -1).map((from, index) => {
+    const to = agents[index + 1];
+    return {
+      from,
+      to,
+      cards: to ? handoffs.filter((handoff) => handoff.from === from.id && handoff.to === to.id) : [],
+    };
+  });
+
   return (
     <section className={["ui-aho", className].filter(Boolean).join(" ")} data-testid="agent-handoff">
       <header className="ui-aho-bar">
         <h2>Handoff</h2>
-        <p>{picked ? `Carrying “${picked.title}”. Choose an agent to the right.` : "Pick up a waiting task, then hand it on."}</p>
+        <p>{picked ? `Carrying “${picked.title}”. Hand it to an agent further along.` : "Pick up a task, then hand it down the relay."}</p>
       </header>
-      <div className="ui-aho-relay">
-        {agents.map((agent, index) => {
+      <div className="ui-aho-agents">
+        {agents.map((agent) => {
           const mine = tasks.filter((task) => task.agent === agent.id);
-          const incoming = handoffs.filter((handoff) => handoff.to === agent.id);
-          const nextTodo = index === 0 ? tasks.find((task) => task.status === "todo" && !task.agent) : undefined;
+          const current = mine.find((task) => task.status === "working") ?? mine[0];
+          const working = mine.some((task) => task.status === "working" || task.status === "warning");
           return (
-            <div key={agent.id} className="ui-aho-column">
-              <article className={canReceive(agent) ? "ui-aho-agent is-target" : "ui-aho-agent"}>
-                <header>
-                  <h3>{agent.name}</h3>
-                  {agent.model ? <span>{agent.model}</span> : null}
-                </header>
-                {agent.description ? <p>{agent.description}</p> : null}
-                <ul aria-label={`${agent.name} tasks`}>
-                  {mine.map((task) => (
-                    <li key={task.id}>
-                      <button
-                        type="button"
-                        aria-pressed={pickedId === task.id}
-                        onClick={() => setPickedId((current) => (current === task.id ? null : task.id))}
-                      >
-                        <strong>{task.title}</strong>
-                        <em className={`is-${task.status}`}>{task.status}</em>
-                        {task.note ? <span>{task.note}</span> : null}
-                      </button>
-                    </li>
-                  ))}
-                  {mine.length === 0 && nextTodo ? (
-                    <li className="ui-aho-upnext">Up next: {nextTodo.title}</li>
-                  ) : null}
-                  {mine.length === 0 && !nextTodo ? <li className="ui-aho-idle">Idle</li> : null}
-                </ul>
-                {canReceive(agent) ? (
-                  <button type="button" className="ui-aho-give" onClick={() => assign(agent)}>
-                    Give “{picked?.title}” to {agent.name}
-                  </button>
-                ) : null}
-              </article>
-              {incoming.length > 0 ? (
-                <ul className="ui-aho-cards" aria-label={`Handed to ${agent.name}`}>
-                  {incoming.map((handoff) => {
-                    const open = openId === handoff.id;
-                    return (
-                      <li key={handoff.id}>
-                        <button
-                          type="button"
-                          className="ui-aho-card"
-                          aria-expanded={open}
-                          onClick={() => setOpenId(open ? null : handoff.id)}
-                        >
-                          {handoff.task}
-                          <span className="ui-aho-count">{handoff.items.length} carried</span>
-                        </button>
-                        {open ? (
-                          <ul>
-                            {handoff.items.map((item) => {
-                              const why = whyId === `${handoff.id}:${item.id}`;
-                              return (
-                                <li key={item.id} className={item.lost ? "is-lost" : undefined}>
-                                  {item.lost ? (
-                                    <button
-                                      type="button"
-                                      aria-expanded={why}
-                                      onClick={() => setWhyId(why ? null : `${handoff.id}:${item.id}`)}
-                                    >
-                                      <s>{item.label}</s>
-                                      <span>{item.kind ?? "note"}</span>
-                                    </button>
-                                  ) : (
-                                    <span>
-                                      {item.label}
-                                      <em className="ui-aho-kind">{item.kind ?? "note"}</em>
-                                    </span>
-                                  )}
-                                  {why && item.why ? (
-                                    <p>
-                                      {item.why}
-                                      {onRestore ? (
-                                        <button type="button" onClick={() => onRestore(handoff, item)}>
-                                          Add back
-                                        </button>
-                                      ) : null}
-                                    </p>
-                                  ) : null}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
+            <article key={agent.id} className={canReceive(agent) ? "ui-aho-agent is-target" : "ui-aho-agent"}>
+              <header>
+                <span className="ui-aho-mark" aria-hidden="true">
+                  {agent.name.slice(0, 1)}
+                </span>
+                <div>
+                  <strong>{agent.name}</strong>
+                  {agent.model ? <small>{agent.model}</small> : null}
+                </div>
+                <span className={working ? "ui-aho-pill is-working" : "ui-aho-pill is-idle"}>{working ? "Working" : "Idle"}</span>
+              </header>
+              {agent.description ? <p>{agent.description}</p> : null}
+              <button
+                type="button"
+                className="ui-aho-chip"
+                aria-pressed={current ? pickedId === current.id : false}
+                onClick={() => current && setPickedId((value) => (value === current.id ? null : current.id))}
+                disabled={!current}
+              >
+                <span>{current ? current.title : "Ready for a task"}</span>
+                {current?.note ? <em>{current.note}</em> : null}
+              </button>
+              {canReceive(agent) ? (
+                <button type="button" className="ui-aho-give" onClick={() => assign(agent)}>
+                  Hand “{picked?.title}” here
+                </button>
               ) : null}
-            </div>
+            </article>
           );
         })}
-        {tasks.some((task) => !task.agent) ? (
-          <div className="ui-aho-column">
-            <article className="ui-aho-agent">
-              <header>
-                <h3>Waiting</h3>
-              </header>
-              <ul aria-label="Waiting tasks">
-                {tasks
-                  .filter((task) => !task.agent)
-                  .map((task) => (
-                    <li key={task.id}>
-                      <button
-                        type="button"
-                        aria-pressed={pickedId === task.id}
-                        onClick={() => setPickedId((current) => (current === task.id ? null : task.id))}
-                      >
-                        <strong>{task.title}</strong>
-                        <em className={`is-${task.status}`}>{task.status}</em>
-                        {task.note ? <span>{task.note}</span> : null}
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            </article>
-          </div>
-        ) : null}
       </div>
+      <div className="ui-aho-wires" aria-hidden="true">
+        {agents.slice(0, -1).map((agent) => (
+          <span key={agent.id} />
+        ))}
+      </div>
+      <div className="ui-aho-gaps">
+        {pairs.map(({ from, to, cards }) => (
+          <div key={`${from.id}-${to?.id}`}>
+            <p className="ui-aho-gaphead">
+              <span>{from.name}</span>
+              <span aria-hidden="true">→</span>
+              <span>{to?.name}</span>
+              <b>{cards.reduce((sum, card) => sum + card.items.length, 0) || cards.length}</b>
+            </p>
+            <ul className="ui-aho-cards" aria-label={`Handed from ${from.name} to ${to?.name}`}>
+              {cards.map((handoff) => {
+                const open = openId === handoff.id;
+                const lost = handoff.items.filter((item) => item.lost);
+                const kept = handoff.items.filter((item) => !item.lost);
+                const line = kept.map((item) => item.label).join(", ");
+                return (
+                  <li key={handoff.id}>
+                    <button type="button" className="ui-aho-card" aria-expanded={open} onClick={() => setOpenId(open ? null : handoff.id)}>
+                      <strong>{handoff.task}</strong>
+                      <span className="ui-aho-line">{line || "Nothing carried"}</span>
+                      {lost.length > 0 ? (
+                        <em className="is-warning">{lost.length} not passed on</em>
+                      ) : (
+                        <em>With {to?.name}</em>
+                      )}
+                    </button>
+                    {open ? (
+                      <ul>
+                        {handoff.items.map((item) => {
+                          const why = whyId === `${handoff.id}:${item.id}`;
+                          return (
+                            <li key={item.id} className={item.lost ? "is-lost" : undefined}>
+                              {item.lost ? (
+                                <button type="button" aria-expanded={why} onClick={() => setWhyId(why ? null : `${handoff.id}:${item.id}`)}>
+                                  <s>{item.label}</s>
+                                </button>
+                              ) : (
+                                <span>{item.label}</span>
+                              )}
+                              {why && item.why ? (
+                                <p>
+                                  {item.why}
+                                  {onRestore ? (
+                                    <button type="button" onClick={() => onRestore(handoff, item)}>
+                                      Add back
+                                    </button>
+                                  ) : null}
+                                </p>
+                              ) : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+      {waiting.length > 0 ? (
+        <ul className="ui-aho-waiting" aria-label="Waiting tasks">
+          {waiting.map((task) => (
+            <li key={task.id}>
+              <button
+                type="button"
+                aria-pressed={pickedId === task.id}
+                onClick={() => setPickedId((current) => (current === task.id ? null : task.id))}
+              >
+                <strong>{task.title}</strong>
+                <em>{task.note ?? task.status}</em>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

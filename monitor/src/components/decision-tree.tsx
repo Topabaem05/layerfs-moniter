@@ -200,18 +200,27 @@ export const DecisionTree = forwardRef<DecisionTreeHandle, DecisionTreeProps>(fu
       data-testid="decision-tree"
     >
       <header className="ui-dct-bar">
-        <h2>{title}</h2>
-        <p>
+        <h2>
+          <span className="ui-spark" aria-hidden="true" />
+          {title}
+        </h2>
+        <p>{decisions.length} waiting for you</p>
+        <p className="ui-dct-page">
           {index + 1} of {decisions.length}
-          <span> · {decision.agent}</span>
-          {decision.model ? <span> · {decision.model}</span> : null}
-          {decision.risk && decision.risk !== "low" ? (
-            <span className={`ui-dct-risk ui-dct-risk-${decision.risk}`}>{decision.risk} risk</span>
-          ) : null}
         </p>
       </header>
       <div className="ui-dct-flow">
         <div className="ui-dct-question">
+          {decision.risk && decision.risk !== "low" ? (
+            <span className={`ui-dct-risk ui-dct-risk-${decision.risk}`}>{decision.risk} risk</span>
+          ) : null}
+          <p className="ui-dct-who">
+            <span className="ui-agt-mark" aria-hidden="true">
+              {decision.agent.slice(0, 1)}
+            </span>
+            <strong>{decision.agent}</strong>
+            {decision.model ? <small>{decision.model}</small> : null}
+          </p>
           <h3>{decision.question}</h3>
           {decision.context ? <p>{decision.context}</p> : null}
         </div>

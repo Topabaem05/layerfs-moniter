@@ -93,72 +93,81 @@ export function AgentLedger({
 
   return (
     <section className={["ui-al", className].filter(Boolean).join(" ")} data-testid="agent-ledger">
-      <header className="ui-al-bar">
-        <h2>
-          {title}
-          {agent ? <span> · {agent}</span> : null}
-        </h2>
-        <p>{ordered.length} changes · newest first</p>
-      </header>
-      <ol aria-label={title}>
-        {ordered.map((entry) => {
-          const isUndone = done.has(entry.id);
-          const reversible = entry.reversible !== false;
-          const also = marked.undo.includes(entry.id);
-          const kept = marked.kept.includes(entry.id);
-          const chain = dependents(entries, entry.id);
-          return (
-            <li
-              key={entry.id}
-              className={isUndone ? "is-undone" : undefined}
-              data-mark={also ? "also" : kept ? "kept" : undefined}
-            >
-              <div className="ui-al-main">
-                <strong>{entry.action}</strong>
-                {entry.target ? <span className="ui-al-target">{entry.target}</span> : null}
-                {entry.change ? (
-                  <p className="ui-al-change">
-                    <s>{entry.change[0]}</s>
-                    <span aria-label="to"> → </span>
-                    <span>{entry.change[1]}</span>
-                  </p>
-                ) : null}
-                {entry.detail ? <p className="ui-al-detail">{entry.detail}</p> : null}
-                {also && entry.id !== focusId ? <em className="ui-al-also">Also undone</em> : null}
-                {kept ? <em className="ui-al-kept">Can’t undo</em> : null}
-              </div>
-              <div className="ui-al-side">
-                <time dateTime={new Date(entry.at).toISOString()}>
-                  {ago(entry.at, now)} · {entry.system}
-                </time>
-                {isUndone ? (
-                  <button type="button" onClick={() => redo(entry.id)} aria-label={`Redo ${entry.action}`}>
-                    Redo
-                  </button>
-                ) : reversible ? (
-                  <button
-                    type="button"
-                    onFocus={() => setHoverId(entry.id)}
-                    onBlur={() => setHoverId((current) => (current === entry.id ? null : current))}
-                    onMouseEnter={() => setHoverId(entry.id)}
-                    onMouseLeave={() => setHoverId((current) => (current === entry.id ? null : current))}
-                    onClick={() => undo(entry.id)}
-                    aria-label={
-                      chain.undo.length > 1
-                        ? `Undo ${entry.action}, and ${chain.undo.length - 1} changes that build on it`
-                        : `Undo ${entry.action}`
-                    }
-                  >
-                    Undo
-                  </button>
-                ) : (
-                  <span className="ui-al-lock">Published</span>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
+      <div className="ui-al-sheet">
+        <header className="ui-al-bar">
+          <h2>
+            <span className="ui-al-mark" aria-hidden="true" />
+            {title}
+            {agent ? <span>{agent}</span> : null}
+          </h2>
+          <p>
+            {ordered.length} change{ordered.length === 1 ? "" : "s"}
+          </p>
+        </header>
+        <ol aria-label={title}>
+          {ordered.map((entry) => {
+            const isUndone = done.has(entry.id);
+            const reversible = entry.reversible !== false;
+            const also = marked.undo.includes(entry.id);
+            const kept = marked.kept.includes(entry.id);
+            const chain = dependents(entries, entry.id);
+            return (
+              <li
+                key={entry.id}
+                className={isUndone ? "is-undone" : undefined}
+                data-mark={also ? "also" : kept ? "kept" : undefined}
+              >
+                <span className="ui-al-icon" aria-hidden="true">
+                  {entry.system.slice(0, 1)}
+                </span>
+                <div className="ui-al-main">
+                  <strong>
+                    {entry.action}
+                    {entry.target ? ` ${entry.target}` : ""}
+                  </strong>
+                  {entry.change ? (
+                    <p className="ui-al-change">
+                      <s>{entry.change[0]}</s>
+                      <span aria-label="to"> → </span>
+                      <span>{entry.change[1]}</span>
+                    </p>
+                  ) : (
+                    <p className="ui-al-change">{entry.detail ?? entry.system}</p>
+                  )}
+                  {also && entry.id !== focusId ? <em className="ui-al-also">Also undone</em> : null}
+                  {kept ? <em className="ui-al-kept">Can’t undo</em> : null}
+                </div>
+                <div className="ui-al-side">
+                  <time dateTime={new Date(entry.at).toISOString()}>{ago(entry.at, now)}</time>
+                  {isUndone ? (
+                    <button type="button" onClick={() => redo(entry.id)} aria-label={`Redo ${entry.action}`}>
+                      <span aria-hidden="true">↻</span> Redo
+                    </button>
+                  ) : reversible ? (
+                    <button
+                      type="button"
+                      onFocus={() => setHoverId(entry.id)}
+                      onBlur={() => setHoverId((current) => (current === entry.id ? null : current))}
+                      onMouseEnter={() => setHoverId(entry.id)}
+                      onMouseLeave={() => setHoverId((current) => (current === entry.id ? null : current))}
+                      onClick={() => undo(entry.id)}
+                      aria-label={
+                        chain.undo.length > 1
+                          ? `Undo ${entry.action}, and ${chain.undo.length - 1} changes that build on it`
+                          : `Undo ${entry.action}`
+                      }
+                    >
+                      <span aria-hidden="true">↺</span> Undo
+                    </button>
+                  ) : (
+                    <span className="ui-al-lock">Kept</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </section>
   );
 }

@@ -382,6 +382,9 @@ export function Studio() {
 
       {payload && decisions && tasks && handoffs ? (
         <>
+          <h2 className="studio-label" id="agent-tree-label">
+            Agent Tree
+          </h2>
           <AgentTree
             root={payload.tree}
             formatCost={(amount) => `${amount} commit${amount === 1 ? "" : "s"}`}
@@ -395,7 +398,10 @@ export function Studio() {
               if (next) rememberArea(next);
             }}
           />
-          <DecisionTree decisions={decisions} onChoose={onChoose} title="Improvement decisions" />
+          <h2 className="studio-label" id="decision-tree-label">
+            Decision Tree
+          </h2>
+          <DecisionTree decisions={decisions} onChoose={onChoose} title="Decisions" />
           <ExperimentPanel
             draft={experiment}
             saved={payload.experiments.find((record) => record.branchId === experiment?.branchId)}
@@ -404,6 +410,9 @@ export function Studio() {
             onChange={setExperiment}
             onSave={() => void saveCurrentExperiment()}
           />
+          <h2 className="studio-label" id="agent-handoff-label">
+            Agent Handoff
+          </h2>
           <AgentHandoff
             agents={payload.agents}
             tasks={tasks}
@@ -411,6 +420,9 @@ export function Studio() {
             onAssign={onAssign}
             onRestore={(handoff, item) => setRestored((current) => [...current, `${handoff.id}:${item.id}`])}
           />
+          <h2 className="studio-label" id="agent-ledger-label">
+            Agent Ledger
+          </h2>
           <AgentLedger
             entries={ledger}
             agent="Branch studio"
