@@ -23,6 +23,18 @@ interface ExperimentStore {
   records: ExperimentRecord[];
 }
 
+export interface BoardSlot {
+  cardId: string;
+  cell: number;
+  agentId: string;
+  percent: number;
+}
+
+export interface BoardState {
+  assignments: { ticketId: string; agentId: string }[];
+  slots: BoardSlot[];
+}
+
 const TYPES = new Set<TicketType>([
   "experiment",
   "ablation",
@@ -103,7 +115,20 @@ function asInput(value: unknown): CreateTicketsInput | undefined {
 export function createApi(options: { repoRoot: string; dataDir: string }) {
   const file = path.join(options.dataDir, "tickets.json");
   const experimentFile = path.join(options.dataDir, "experiments.json");
+  const boardFile = path.join(options.dataDir, "board.json");
   const projectId = "layerfs-moniter";
+
+  function loadBoard(): BoardState {
+    try {
+      const parsed = JSON.parse(readFileSync(boardFile, "utf8")) as BoardState;
+      return {
+        assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+        slots: Array.isArray(parsed.slots) ? parsed.slots : [],
+      };
+    } catch {
+      return { assignments: [], slots: [] };
+    }
+  }
 
   return async function handle(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
     const url = new URL(req.url ?? "/", "http://studio.local");
@@ -117,7 +142,26 @@ export function createApi(options: { repoRoot: string; dataDir: string }) {
         tickets: store.tickets,
         revision: store.revision,
         experiments: loadExperiments(experimentFile),
+        board: loadBoard(),
       });
+      return true;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/board") {
+      const raw = await readBody(req);
+      let parsed: BoardState;
+      try {
+        parsed = JSON.parse(raw) as BoardState;
+      } catch {
+        send(res, 400, { ok: false, message: "Request body must be JSON." });
+        return true;
+      }
+      const next: BoardState = {
+        assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+        slots: Array.isArray(parsed.slots) ? parsed.slots : [],
+      };
+      saveJson(boardFile, next);
+      send(res, 200, { ok: true, board: next });
       return true;
     }
 
@@ -173,6 +217,8 @@ export function createApi(options: { repoRoot: string; dataDir: string }) {
         return true;
       }
       const store = loadStore(file);
+      const holdDraft =
+        typeof parsed === "object" && parsed !== null && (parsed as { hold_draft?: boolean }).hold_draft === true;
       const outcome = buildTickets({
         projectId,
         drafts: input.tickets,
@@ -180,6 +226,7 @@ export function createApi(options: { repoRoot: string; dataDir: string }) {
         existing: store.tickets,
         now: new Date().toISOString(),
         newId: () => `tkt_${randomBytes(6).toString("hex")}`,
+        holdDraft,
       });
       if (!outcome.ok) {
         const message = outcome.kind === "domain" ? outcome.error.message : outcome.message;
@@ -213,6 +260,37 @@ export function createApi(options: { repoRoot: string; dataDir: string }) {
           terms: explainRankScore(ticket.rankFactors, { pinned: ticket.pinned, priority: ticket.priority }),
         })),
       });
+      return true;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/tickets/claim") {
+      const raw = await readBody(req);
+      let body: { ticket_id?: string; actor?: string };
+      try {
+        body = JSON.parse(raw) as { ticket_id?: string; actor?: string };
+      } catch {
+        send(res, 400, { ok: false, message: "Request body must be JSON." });
+        return true;
+      }
+      const store = loadStore(file);
+      const current = store.tickets.find((ticket) => ticket.id === body.ticket_id);
+      if (!current) {
+        send(res, 404, { ok: false, message: `No ticket ${body.ticket_id ?? ""}.` });
+        return true;
+      }
+      const claimed = transitionTicket(current, {
+        kind: "claim",
+        at: new Date().toISOString(),
+        actor: body.actor?.trim() || "scout",
+        selectedReason: "Assigned from the delegate board.",
+      });
+      if (!claimed.ok) {
+        send(res, 409, { ok: false, message: claimed.error.message });
+        return true;
+      }
+      const tickets = store.tickets.map((ticket) => (ticket.id === claimed.value.id ? claimed.value : ticket));
+      saveStore(file, { revision: store.revision + 1, tickets });
+      send(res, 200, { ok: true, ticket: claimed.value });
       return true;
     }
 

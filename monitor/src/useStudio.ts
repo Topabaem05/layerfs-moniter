@@ -5,10 +5,23 @@ import type { CreateTicketsInput } from "./falsify/create.js";
 import type { Ticket } from "./falsify/types.js";
 import type { StudioSnapshot } from "./model.js";
 
+export interface BoardSlot {
+  cardId: string;
+  cell: number;
+  agentId: string;
+  percent: number;
+}
+
+export interface BoardState {
+  assignments: { ticketId: string; agentId: string }[];
+  slots: BoardSlot[];
+}
+
 export interface StudioPayload extends StudioSnapshot {
   tickets: Ticket[];
   revision: number;
   experiments: ExperimentRecord[];
+  board: BoardState;
 }
 
 export interface TicketReceipt {
@@ -48,11 +61,11 @@ export function useStudio() {
     };
   }, [load]);
 
-  async function create(input: CreateTicketsInput): Promise<TicketReceipt> {
+  async function create(input: CreateTicketsInput, options?: { holdDraft?: boolean }): Promise<TicketReceipt> {
     const response = await fetch("/api/tickets", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, hold_draft: options?.holdDraft === true }),
     });
     if (!response.ok) throw new Error(await readError(response));
     const receipt = (await response.json()) as TicketReceipt;
@@ -72,6 +85,26 @@ export function useStudio() {
     return body.experiment;
   }
 
+  async function claim(ticketId: string, actor: string): Promise<void> {
+    const response = await fetch("/api/tickets/claim", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ticket_id: ticketId, actor }),
+    });
+    if (!response.ok) throw new Error(await readError(response));
+    await load();
+  }
+
+  async function saveBoard(board: BoardState): Promise<void> {
+    const response = await fetch("/api/board", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(board),
+    });
+    if (!response.ok) throw new Error(await readError(response));
+    await load();
+  }
+
   async function cancel(ticketId: string): Promise<void> {
     const response = await fetch("/api/tickets/cancel", {
       method: "POST",
@@ -85,5 +118,5 @@ export function useStudio() {
     await load();
   }
 
-  return { payload, error, create, cancel, saveExperiment };
+  return { payload, error, create, cancel, claim, saveBoard, saveExperiment };
 }

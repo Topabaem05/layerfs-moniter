@@ -87,6 +87,22 @@ describe("Falsify ticket entry path", () => {
     expect(twice.error.code).toBe("illegal_ticket_transition");
   });
 
+  it("can hold a composer ticket in DRAFT", () => {
+    const outcome = buildTickets({
+      projectId: "layerfs-moniter",
+      drafts: [draft],
+      source: "human",
+      existing: [],
+      now: "2026-11-01T00:00:00.000Z",
+      newId: () => "tkt_draft",
+      holdDraft: true,
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.tickets[0]?.status).toBe("DRAFT");
+    expect(outcome.tickets[0]?.version).toBe(0);
+  });
+
   it("rejects a title that is too short", () => {
     const outcome = buildTickets({
       projectId: "layerfs-moniter",

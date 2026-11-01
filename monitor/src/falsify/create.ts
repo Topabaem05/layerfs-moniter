@@ -156,6 +156,8 @@ export interface BuildInput {
   readonly existing: readonly Ticket[];
   readonly now: string;
   readonly newId: () => string;
+  /** When true, leave the ticket in DRAFT instead of QUEUED/ELIGIBLE. */
+  readonly holdDraft?: boolean;
 }
 
 /**
@@ -220,6 +222,12 @@ export function buildTickets(input: BuildInput): CreateOutcome {
     if (draft.rationale !== undefined) ticket.rationale = draft.rationale;
     if (draft.decision_axis !== undefined) ticket.decisionAxis = draft.decision_axis;
     if (draft.round_id !== undefined) ticket.roundId = draft.round_id;
+
+    if (input.holdDraft) {
+      statusById.set(ticket.id, ticket.status);
+      built.push(ticket);
+      continue;
+    }
 
     const queued = transitionTicket(ticket, { kind: "validate", at: input.now });
     if (!queued.ok) return { ok: false, kind: "domain", error: queued.error };
